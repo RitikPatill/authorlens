@@ -28,7 +28,7 @@ The explosion of LLM-generated content has made authorship attribution a live, u
 
 ## Current Status
 
-**M3 — embedding fingerprinting complete.**
+**M4 — CLI with rich output complete.**
 
 | Component | State |
 |---|---|
@@ -41,18 +41,24 @@ The explosion of LLM-generated content has made authorship attribution a live, u
 | `FeatureVector` dataclass + `extract()` + `compare()` | done |
 | 8 stylometric features: TTR, mean/std sent len, punct density, Yule K, burstiness, func-word freq | done |
 | 10 unit tests in `tests/test_features.py` | done |
-| **`embedder.py`: lazy `all-MiniLM-L6-v2` load, `encode()` → 384-dim float32, `cosine_similarity()`** | **done** |
-| **`scorer.py`: `AuthorshipScore` dataclass + `fuse()` weighted fusion** | **done** |
-| **10 unit tests in `tests/test_embedder.py` + `tests/test_scorer.py`** | **done** |
-| Rich CLI table, FastAPI endpoint + HTML UI | M4 – M5 |
+| `embedder.py`: lazy `all-MiniLM-L6-v2` load, `encode()` → 384-dim float32, `cosine_similarity()` | done |
+| `scorer.py`: `AuthorshipScore` dataclass + `fuse()` weighted fusion | done |
+| 10 unit tests in `tests/test_embedder.py` + `tests/test_scorer.py` | done |
+| **`cli.py`: `compare` + `scan` commands with Rich tables, colour-coded scores, top-3 feature diff** | **done** |
+| **6 unit tests in `tests/test_cli.py`** | **done** |
+| FastAPI endpoint + HTML UI | M5 |
 
 ## Quickstart
 
 ```bash
 pip install -r requirements.txt
-authorlens compare doc1.txt doc2.txt   # stub — implemented in M4
+authorlens compare doc1.txt doc2.txt
 # or scan a folder
-authorlens scan ./folder/              # stub — implemented in M4
+authorlens scan ./folder/
+
+# Optional flags
+authorlens compare doc1.txt doc2.txt --emb-weight 0.6 --threshold 0.8
+authorlens scan ./folder/ --threshold 0.7   # exit 1 if any pair exceeds 0.7
 ```
 
 Start the REST API:
@@ -80,7 +86,8 @@ authorlens/
 │   ├── test_smoke.py
 │   ├── test_features.py   # stylometric feature unit tests (M2)
 │   ├── test_embedder.py   # embedding unit tests (M3)
-│   └── test_scorer.py     # fusion scorer unit tests (M3)
+│   ├── test_scorer.py     # fusion scorer unit tests (M3)
+│   └── test_cli.py        # CLI unit tests (M4)
 ├── data/
 │   └── demo/               # 10 human vs GPT-4 paragraph pairs (M6)
 ├── requirements.txt
@@ -94,7 +101,7 @@ authorlens/
 - [x] **M1** — Repo scaffold, stub modules, smoke tests, pinned dependencies, MIT license
 - [x] **M2** — Implement 8+ stylometric features (TTR, sentence length, punctuation density, function-word frequency, Yule's K, burstiness)
 - [x] **M3** — Integrate `all-MiniLM-L6-v2` sentence-transformer embeddings (CPU, no API key) + weighted fusion scorer
-- [ ] **M4** — Rich CLI table with top-3 diverging feature explanations
+- [x] **M4** — Rich CLI table with top-3 diverging feature explanations (`compare` + `scan` commands)
 - [ ] **M5** — FastAPI `/compare` endpoint + minimal single-page HTML form
 - [ ] **M6** — Bundle demo dataset (10 human vs GPT-4 pairs) and end-to-end integration tests
 
