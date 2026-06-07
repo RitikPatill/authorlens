@@ -28,7 +28,7 @@ The explosion of LLM-generated content has made authorship attribution a live, u
 
 ## Current Status
 
-**M4 — CLI with rich output complete.**
+**M5 — FastAPI REST API + HTML demo page complete.**
 
 | Component | State |
 |---|---|
@@ -44,9 +44,12 @@ The explosion of LLM-generated content has made authorship attribution a live, u
 | `embedder.py`: lazy `all-MiniLM-L6-v2` load, `encode()` → 384-dim float32, `cosine_similarity()` | done |
 | `scorer.py`: `AuthorshipScore` dataclass + `fuse()` weighted fusion | done |
 | 10 unit tests in `tests/test_embedder.py` + `tests/test_scorer.py` | done |
-| **`cli.py`: `compare` + `scan` commands with Rich tables, colour-coded scores, top-3 feature diff** | **done** |
-| **6 unit tests in `tests/test_cli.py`** | **done** |
-| FastAPI endpoint + HTML UI | M5 |
+| `cli.py`: `compare` + `scan` commands with Rich tables, colour-coded scores, top-3 feature diff | done |
+| 6 unit tests in `tests/test_cli.py` | done |
+| **`api.py`: `POST /compare`, `GET /health`, `GET /` (Jinja2 HTML form), CORS middleware** | **done** |
+| **`templates/index.html`: single-page form, fetch-based results, feature delta table** | **done** |
+| **6 unit tests in `tests/test_api.py`** | **done** |
+| Demo dataset (10 human vs GPT-4 pairs) | M6 |
 
 ## Quickstart
 
@@ -65,8 +68,9 @@ Start the REST API:
 
 ```bash
 uvicorn authorlens.api:app --reload
-# POST {"texts": ["...", "..."]} to http://localhost:8000/compare  # stub — M5
-# Open http://localhost:8000/ for the single-page UI              # stub — M5
+# POST {"texts": ["...", "..."]} to http://localhost:8000/compare
+# Open http://localhost:8000/ for the single-page HTML form
+# GET  http://localhost:8000/health  → {"status": "ok"}
 ```
 
 ## Project Layout
@@ -80,14 +84,17 @@ authorlens/
 │       ├── embedder.py      # sentence-transformer fingerprint (M3)
 │       ├── scorer.py        # weighted fusion scorer (M3)
 │       ├── cli.py           # typer CLI entry point (M4)
-│       └── api.py           # fastapi REST + HTML UI (M5)
+│       ├── api.py           # fastapi REST + HTML UI (M5)
+│       └── templates/
+│           └── index.html   # single-page HTML form (M5)
 ├── tests/
 │   ├── __init__.py
 │   ├── test_smoke.py
 │   ├── test_features.py   # stylometric feature unit tests (M2)
 │   ├── test_embedder.py   # embedding unit tests (M3)
 │   ├── test_scorer.py     # fusion scorer unit tests (M3)
-│   └── test_cli.py        # CLI unit tests (M4)
+│   ├── test_cli.py        # CLI unit tests (M4)
+│   └── test_api.py        # REST API unit tests (M5)
 ├── data/
 │   └── demo/               # 10 human vs GPT-4 paragraph pairs (M6)
 ├── requirements.txt
@@ -102,7 +109,7 @@ authorlens/
 - [x] **M2** — Implement 8+ stylometric features (TTR, sentence length, punctuation density, function-word frequency, Yule's K, burstiness)
 - [x] **M3** — Integrate `all-MiniLM-L6-v2` sentence-transformer embeddings (CPU, no API key) + weighted fusion scorer
 - [x] **M4** — Rich CLI table with top-3 diverging feature explanations (`compare` + `scan` commands)
-- [ ] **M5** — FastAPI `/compare` endpoint + minimal single-page HTML form
+- [x] **M5** — FastAPI `/compare` endpoint + minimal single-page HTML form + CORS + `/health`
 - [ ] **M6** — Bundle demo dataset (10 human vs GPT-4 pairs) and end-to-end integration tests
 
 ## License
