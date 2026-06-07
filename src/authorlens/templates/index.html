@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuthorLens</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; background: #f9f9f9; color: #222; }
+    h1 { font-size: 1.8rem; margin-bottom: 4px; }
+    p.subtitle { color: #555; margin-top: 0; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    label { font-weight: 600; display: block; margin-bottom: 4px; }
+    textarea { width: 100%; height: 160px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; resize: vertical; box-sizing: border-box; }
+    .controls { margin-top: 14px; display: flex; align-items: center; gap: 16px; }
+    input[type=number] { width: 80px; padding: 6px; border: 1px solid #ccc; border-radius: 6px; }
+    button { padding: 9px 24px; background: #2563eb; color: #fff; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    #results { margin-top: 24px; }
+    .score-box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; }
+    .score-box h2 { margin: 0 0 8px; font-size: 1.1rem; }
+    .verdict { font-size: 1.2rem; font-weight: 700; margin-top: 6px; }
+    .same { color: #16a34a; }
+    .uncertain { color: #ca8a04; }
+    .different { color: #dc2626; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #eee; }
+    th { background: #f3f4f6; }
+    .error { color: #dc2626; background: #fef2f2; border: 1px solid #fca5a5; padding: 10px 14px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>AuthorLens</h1>
+  <p class="subtitle">Paste two texts to compare writing style and authorship similarity.</p>
+
+  <div class="grid">
+    <div>
+      <label for="docA">Document A</label>
+      <textarea id="docA" placeholder="Paste first text here..."></textarea>
+    </div>
+    <div>
+      <label for="docB">Document B</label>
+      <textarea id="docB" placeholder="Paste second text here..."></textarea>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div>
+      <label for="embWeight">Embedding weight (0–1)</label>
+      <input type="number" id="embWeight" value="0.5" min="0" max="1" step="0.05">
+    </div>
+    <button onclick="runCompare()">Compare</button>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    async function runCompare() {
+      const textA = document.getElementById('docA').value.trim();
+      const textB = document.getElementById('docB').value.trim();
+      const weight = parseFloat(document.getElementById('embWeight').value);
+      const out = document.getElementById('results');
+
+      if (!textA || !textB) {
+        out.innerHTML = '<p class="error">Please fill in both documents.</p>';
+        return;
+      }
+
+      out.innerHTML = '<p>Analysing&hellip;</p>';
+
+      try {
+        const resp = await fetch('/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ texts: [textA, textB], emb_weight: weight }),
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          out.innerHTML = `<p class="error">Error ${resp.status}: ${JSON.stringify(err.detail ?? err)}</p>`;
+          return;
+        }
+
+        const d = await resp.json();
+        const verdictClass = d.verdict === 'likely same author' ? 'same'
+                           : d.verdict === 'uncertain' ? 'uncertain' : 'different';
+
+        const feats = Object.entries(d.feature_breakdown)
+          .sort((a, b) => b[1] - a[1]);
+
+        const rows = feats.map(([k, v]) =>
+          `<tr><td>${k.replace(/_/g, ' ')}</td><td>${v.toFixed(4)}</td></tr>`
+        ).join('');
+
+        out.innerHTML = `
+          <div class="score-box">
+            <h2>Results</h2>
+            <p><strong>Overall score:</strong> ${d.overall_score.toFixed(3)} &nbsp;|&nbsp;
+               <strong>Embedding sim:</strong> ${d.embedding_sim.toFixed(3)} &nbsp;|&nbsp;
+               <strong>Stylometric sim:</strong> ${d.stylometric_sim.toFixed(3)}</p>
+            <div class="verdict ${verdictClass}">${d.verdict.toUpperCase()}</div>
+          </div>
+          <div class="score-box">
+            <h2>Feature deltas (sorted by magnitude)</h2>
+            <table>
+              <thead><tr><th>Feature</th><th>Delta</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+      } catch (e) {
+        out.innerHTML = `<p class="error">Request failed: ${e.message}</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
