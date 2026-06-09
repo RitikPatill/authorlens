@@ -1,0 +1,7 @@
+My first encounter with something that felt genuinely intelligent was a chatbot that helped me debug a gnarly regex at two in the morning. I'd been staring at the same line for an hour. The thing just... solved it. In seconds. I sat back and felt a mix of relief and something I can only describe as unease.
+
+That was a few years ago. Now AI is everywhere — my email drafts itself, my photos organize themselves, code reviewers flag bugs before I even run the tests. It's impressive, sure. But also? Kind of terrifying if you think about it too hard.
+
+What keeps me up at night isn't Skynet stuff. It's subtler: the way these models confidently hallucinate, the way bias bakes in from training data we barely understand, the way we're deploying systems at scale before we've figured out alignment. Are we moving too fast? Almost certainly.
+
+I still think the technology is extraordinary. I use it every day. But I've stopped treating it like a calculator — a neutral tool you just point at problems. It's more complicated than that. The people building these systems have enormous power and, so far, pretty thin accountability. That imbalance worries me a lot more than the robots-taking-over narrative.

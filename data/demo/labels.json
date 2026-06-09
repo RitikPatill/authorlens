@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "topic": "climate change",
+    "human": "data/demo/pair_01_human.txt",
+    "gpt4":  "data/demo/pair_01_gpt4.txt",
+    "expected": "different"
+  },
+  {
+    "id": 2,
+    "topic": "artificial intelligence",
+    "human": "data/demo/pair_02_human.txt",
+    "gpt4":  "data/demo/pair_02_gpt4.txt",
+    "expected": "different"
+  },
+  {
+    "id": 3,
+    "topic": "remote work",
+    "human": "data/demo/pair_03_human.txt",
+    "gpt4":  "data/demo/pair_03_gpt4.txt",
+    "expected": "different"
+  },
+  {
+    "id": 4,
+    "topic": "social media",
+    "human": "data/demo/pair_04_human.txt",
+    "gpt4":  "data/demo/pair_04_gpt4.txt",
+    "expected": "different"
+  },
+  {
+    "id": 5,
+    "topic": "space exploration",
+    "human": "data/demo/pair_05_human.txt",
+    "gpt4":  "data/demo/pair_05_gpt4.txt",
+    "expected": "different"
+  },
+  {
+    "id": 6,
+    "topic": "universal basic income",
+    "human": "data/demo/pair_06_human.txt",
+    "gpt4":  "data/demo/pair_06_gpt4.txt",
+    "expected": "different"
+  },
+  {
+    "id": 7,
+    "topic": "electric vehicles",
+    "human": "data/demo/pair_07_human.txt",
+    "gpt4":  "data/demo/pair_07_gpt4.txt",
+    "expected": "different"
+  },
+  {
+    "id": 8,
+    "topic": "mental health",
+    "human": "data/demo/pair_08_human.txt",
+    "gpt4":  "data/demo/pair_08_gpt4.txt",
+    "expected": "different"
+  },
+  {
+    "id": 9,
+    "topic": "cryptocurrency",
+    "human": "data/demo/pair_09_human.txt",
+    "gpt4":  "data/demo/pair_09_gpt4.txt",
+    "expected": "different"
+  },
+  {
+    "id": 10,
+    "topic": "renewable energy",
+    "human": "data/demo/pair_10_human.txt",
+    "gpt4":  "data/demo/pair_10_gpt4.txt",
+    "expected": "different"
+  }
+]

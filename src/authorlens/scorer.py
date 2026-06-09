@@ -24,6 +24,15 @@ class AuthorshipScore:
     feature_deltas: dict[str, float]  # raw output of features.compare()
 
 
+def verdict(score: float) -> str:
+    """Return a human-readable authorship verdict for a given overall score."""
+    if score >= 0.7:
+        return "likely same author"
+    if score >= 0.4:
+        return "uncertain"
+    return "likely different authors"
+
+
 def fuse(text_a: str, text_b: str, emb_weight: float = 0.5) -> AuthorshipScore:
     """Combine embedding cosine similarity and stylometric distance into one score."""
     fv_a = features.extract(text_a)

@@ -1,117 +1,117 @@
 # AuthorLens
 
-> Fingerprint writing style. Attribute authorship. Explain the diff.
+> Explainable authorship fingerprinting: compare writing styles and detect AI-generated text using local sentence embeddings.
 
-![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
-![License: MIT](https://img.shields.io/badge/license-MIT-green)
-![Status: WIP](https://img.shields.io/badge/status-WIP-yellow)
+<!-- TODO: replace with a 5-10 second demo gif. Record with ScreenToGif on
+     Windows or peek on macOS. Save to docs/demo.gif and update path here. -->
+![demo](docs/demo.gif)
 
-## Motivation
+## What it is
 
-The explosion of LLM-generated content has made authorship attribution a live, unsolved problem. Researchers, journalists, and educators need lightweight, interpretable tools — not black-box classifiers. AuthorLens combines classical stylometric feature engineering with modern sentence-transformer embeddings to produce an explainable similarity score grounded in the 2025 paper *Explainable Disentangled Representation Learning for Generalizable Authorship Attribution in the Era of Generative AI*.
+AuthorLens computes a stylometric profile for each document — type-token ratio, sentence-length distribution, punctuation density, function-word frequency, Yule's K, and burstiness — and fuses those features with a 384-dimensional embedding produced by `all-MiniLM-L6-v2` running entirely on CPU. The result is a single similarity score between 0 and 1, plus a ranked diff of the three stylometric features that diverge most, each annotated with a plain-English explanation.
 
-## Architecture
-
-```
- doc1.txt ──┐                          ┌─── Rich terminal table
-            ├──► features.py ──────────┤
- doc2.txt ──┘    (stylometrics)        │
-            │                          ├──► CLI  (typer)
-            ├──► embedder.py ──────────┤
-                 (all-MiniLM-L6-v2)    └──► API  (fastapi /compare)
-                        │
-                        ▼
-                    scorer.py
-               (weighted fusion score
-                + top-3 feature diff)
-```
-
-## Current Status
-
-**M5 — FastAPI REST API + HTML demo page complete.**
-
-| Component | State |
-|---|---|
-| Repo layout (`src/`, `tests/`, `data/demo/`) | done |
-| Package version (`authorlens.__version__ = "0.1.0"`) | done |
-| Stub modules (`features`, `embedder`, `scorer`, `cli`, `api`) | done |
-| Smoke test (`test_version`, `test_stub_imports`) | done |
-| Pinned dependencies (`requirements.txt`) | done |
-| `pyproject.toml`, `.gitignore`, MIT license | done |
-| `FeatureVector` dataclass + `extract()` + `compare()` | done |
-| 8 stylometric features: TTR, mean/std sent len, punct density, Yule K, burstiness, func-word freq | done |
-| 10 unit tests in `tests/test_features.py` | done |
-| `embedder.py`: lazy `all-MiniLM-L6-v2` load, `encode()` → 384-dim float32, `cosine_similarity()` | done |
-| `scorer.py`: `AuthorshipScore` dataclass + `fuse()` weighted fusion | done |
-| 10 unit tests in `tests/test_embedder.py` + `tests/test_scorer.py` | done |
-| `cli.py`: `compare` + `scan` commands with Rich tables, colour-coded scores, top-3 feature diff | done |
-| 6 unit tests in `tests/test_cli.py` | done |
-| **`api.py`: `POST /compare`, `GET /health`, `GET /` (Jinja2 HTML form), CORS middleware** | **done** |
-| **`templates/index.html`: single-page form, fetch-based results, feature delta table** | **done** |
-| **6 unit tests in `tests/test_api.py`** | **done** |
-| Demo dataset (10 human vs GPT-4 pairs) | M6 |
+The tool addresses a concrete gap: LLM-generated content is increasingly common, yet most authorship tools are either black-box classifiers or academic prototypes. AuthorLens is neither. It runs offline, requires no API key, and shows its reasoning at every step. The design is grounded in the 2025 paper *Explainable Disentangled Representation Learning for Generalizable Authorship Attribution in the Era of Generative AI*.
 
 ## Quickstart
 
 ```bash
+git clone https://github.com/RitikPatill/authorlens.git
+cd authorlens
 pip install -r requirements.txt
-authorlens compare doc1.txt doc2.txt
-# or scan a folder
-authorlens scan ./folder/
+pip install -e .
 
-# Optional flags
-authorlens compare doc1.txt doc2.txt --emb-weight 0.6 --threshold 0.8
-authorlens scan ./folder/ --threshold 0.7   # exit 1 if any pair exceeds 0.7
+# Compare two documents
+authorlens compare doc1.txt doc2.txt
+
+# Scan every pair in a folder
+authorlens scan ./data/demo/
+
+# Run the bundled 10-pair human-vs-GPT-4 demo
+python demo.py
 ```
 
 Start the REST API:
 
 ```bash
 uvicorn authorlens.api:app --reload
-# POST {"texts": ["...", "..."]} to http://localhost:8000/compare
-# Open http://localhost:8000/ for the single-page HTML form
-# GET  http://localhost:8000/health  → {"status": "ok"}
 ```
 
-## Project Layout
+## Usage
+
+**CLI** — `authorlens compare` prints a Rich terminal table with the combined score, the embedding cosine similarity, the stylometric similarity, a verdict ("likely same author" / "uncertain" / "likely different authors"), and the top-3 diverging features. `authorlens scan` does the same for every `.txt` pair in a directory and exits with code 1 if any pair exceeds the threshold.
+
+Optional flags:
+
+```bash
+authorlens compare doc1.txt doc2.txt --emb-weight 0.6 --threshold 0.8
+authorlens scan ./folder/ --threshold 0.7
+```
+
+**REST API** — `POST /compare` accepts `{"texts": ["...", "..."]}` and returns a JSON object containing `overall`, `embedding_sim`, `stylometric_sim`, `verdict`, and a `feature_deltas` list. A single-page HTML form is served at `/` for browser-based testing. Health check at `GET /health`.
+
+```bash
+curl -s -X POST http://localhost:8000/compare \
+  -H "Content-Type: application/json" \
+  -d '{"texts": ["I walked to the shop, tired.", "The individual proceeded to the retail establishment."]}' \
+  | python -m json.tool
+```
+
+**Demo dataset** — `python demo.py` runs all 10 bundled human-vs-GPT-4 paragraph pairs and prints an accuracy summary. On the default weights, the majority of pairs resolve to "likely different authors".
+
+## Architecture
+
+```
+┌─────────────┐     ┌──────────────────┐
+│  Text A/B   │────▶│  features.py     │──────┐
+└─────────────┘     │  (8 stylometrics)│      │   ┌────────────────┐
+                    └──────────────────┘      ├──▶│  scorer.py     │──▶ score + diff
+┌─────────────┐     ┌──────────────────┐      │   │ (weighted avg) │
+│  Text A/B   │────▶│  embedder.py     │──────┘   └────────────────┘
+└─────────────┘     │  (MiniLM 384-d)  │
+                    └──────────────────┘
+
+        ┌──────────┐          ┌──────────────┐
+        │  cli.py  │          │   api.py     │
+        │  (typer) │          │  (fastapi)   │
+        └──────────┘          └──────────────┘
+```
+
+## Project structure
 
 ```
 authorlens/
-├── src/
-│   └── authorlens/
-│       ├── __init__.py      # package version
-│       ├── features.py      # stylometric feature extraction (M2)
-│       ├── embedder.py      # sentence-transformer fingerprint (M3)
-│       ├── scorer.py        # weighted fusion scorer (M3)
-│       ├── cli.py           # typer CLI entry point (M4)
-│       ├── api.py           # fastapi REST + HTML UI (M5)
-│       └── templates/
-│           └── index.html   # single-page HTML form (M5)
-├── tests/
-│   ├── __init__.py
-│   ├── test_smoke.py
-│   ├── test_features.py   # stylometric feature unit tests (M2)
-│   ├── test_embedder.py   # embedding unit tests (M3)
-│   ├── test_scorer.py     # fusion scorer unit tests (M3)
-│   ├── test_cli.py        # CLI unit tests (M4)
-│   └── test_api.py        # REST API unit tests (M5)
-├── data/
-│   └── demo/               # 10 human vs GPT-4 paragraph pairs (M6)
-├── requirements.txt
-├── requirements-dev.txt
+├── src/authorlens/
+│   ├── __init__.py       # package version (0.1.0)
+│   ├── features.py       # 8 stylometric features
+│   ├── embedder.py       # sentence-transformer encode + cosine similarity
+│   ├── scorer.py         # weighted fusion, AuthorshipScore dataclass
+│   ├── cli.py            # typer CLI (compare, scan)
+│   ├── api.py            # FastAPI REST + CORS + health
+│   └── templates/
+│       └── index.html    # single-page HTML form
+├── tests/                # 30+ unit + integration tests
+├── data/demo/            # 10 human-vs-GPT-4 paragraph pairs + labels.json
+├── demo.py               # end-to-end demo script
 ├── pyproject.toml
-└── README.md
+├── requirements.txt
+└── requirements-dev.txt
 ```
 
 ## Roadmap
 
-- [x] **M1** — Repo scaffold, stub modules, smoke tests, pinned dependencies, MIT license
-- [x] **M2** — Implement 8+ stylometric features (TTR, sentence length, punctuation density, function-word frequency, Yule's K, burstiness)
-- [x] **M3** — Integrate `all-MiniLM-L6-v2` sentence-transformer embeddings (CPU, no API key) + weighted fusion scorer
-- [x] **M4** — Rich CLI table with top-3 diverging feature explanations (`compare` + `scan` commands)
-- [x] **M5** — FastAPI `/compare` endpoint + minimal single-page HTML form + CORS + `/health`
-- [ ] **M6** — Bundle demo dataset (10 human vs GPT-4 pairs) and end-to-end integration tests
+- [ ] Support multi-document authorship clustering (more than two texts at once)
+- [ ] Add a confidence interval to each feature delta using bootstrap resampling
+- [ ] Expose a `--format json` flag on the CLI for machine-readable output
+- [ ] Package and publish to PyPI for single-command install
+- [ ] Extend the demo dataset with non-English pairs to measure feature portability
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+---
+
+Built autonomously by [autodev](https://github.com/RitikPatill/autodev),
+a multi-agent orchestrator I designed. Each commit in this repo was
+authored by me; the implementation work was performed by Sonnet under
+the orchestrator's control. Read the orchestrator's README to see how.
