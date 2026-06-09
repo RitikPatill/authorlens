@@ -47,16 +47,6 @@ class CompareResponse(BaseModel):
     verdict: str
 
 
-# ---------- Helpers ----------
-
-def _verdict(score: float) -> str:
-    if score >= 0.7:
-        return "likely same author"
-    if score >= 0.4:
-        return "uncertain"
-    return "likely different authors"
-
-
 # ---------- Endpoints ----------
 
 @app.get("/health")
@@ -77,5 +67,5 @@ def compare(payload: CompareRequest):
         embedding_sim=result.embedding_sim,
         stylometric_sim=result.stylometric_sim,
         feature_breakdown=FeatureBreakdown(**result.feature_deltas),
-        verdict=_verdict(result.overall),
+        verdict=scorer.verdict(result.overall),
     )

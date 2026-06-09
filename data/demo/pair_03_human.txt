@@ -1,0 +1,7 @@
+When my company went fully remote in early 2020, I genuinely thought it'd be a disaster. I'm someone who feeds off energy in a room — the whiteboard sessions, the hallway chats, the unplanned coffee that turns into a breakthrough. How was that supposed to happen over Zoom?
+
+Turns out, I was half-right. Some things collapsed. Onboarding new teammates got painfully slow. The informal knowledge transfer — "hey, watch how I do this" — basically vanished. New hires felt disconnected for months. That was real and it sucked.
+
+But other things got better in ways I didn't expect. I stopped losing ninety minutes a day to commuting. I could work at 6am when I'm sharpest, then take a walk at noon, then circle back for focused work in the evening. My output went up. My stress went down, mostly.
+
+Three years in, I think the debate about remote-vs-office is being fought on the wrong terrain. It's not about location, it's about intentionality. The companies doing this well are deliberate: async documentation, structured check-ins, in-person sprints twice a year. The ones struggling are trying to replicate office culture on video calls. That doesn't work. You've got to build something new, not imitate the old thing badly.
