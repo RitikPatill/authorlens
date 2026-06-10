@@ -1,5 +1,9 @@
 # AuthorLens
 
+
+> **Video walkthrough:** https://youtu.be/wF3vxBjlhE8
+> **60-second overview:** https://youtu.be/74dvp3JjHyU
+
 > Explainable authorship fingerprinting: compare writing styles and detect AI-generated text using local sentence embeddings.
 
 <!-- TODO: replace with a 5-10 second demo gif. Record with ScreenToGif on
